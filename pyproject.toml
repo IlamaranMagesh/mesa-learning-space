@@ -9,4 +9,5 @@ dependencies = [
     "mesa>=3.5.1",
     "networkx>=3.6.1",
     "numpy>=2.4.3",
+    "pytest>=9.0.2",
 ]
