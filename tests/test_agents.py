@@ -4,11 +4,10 @@ from mesa.model import Model
 from mesa.discrete_space import Network
 import networkx as nx
 
-from utilities import generate_random_subnetworks
+from example.utilities import generate_random_subnetworks
 
 class MockModel(Model):
     """Mock model with no custom step"""
-
 
 
 def test_get_players_in_lobby():
