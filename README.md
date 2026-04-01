@@ -1,5 +1,8 @@
 <!-- After forking, you can update this readme to give an overview of your work and learning, if you want. -->
 
+# [-> My Personal Motivation <-](motivation.md)
+
+
 # Mesa GSoC Learning Space
 This is a template repository for GSoC candidates working on [Mesa](https://github.com/mesa/mesa). Fork it to create your personal learning space.
 
