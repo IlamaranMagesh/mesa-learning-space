@@ -10,7 +10,9 @@ Attributes:
 - toxic-threshold # The threshold above which the agent becomes toxic. f(tolerance)
 - recovery-rate # The rate at which the agent recovers from toxicity
 - tolerance # The amount of toxicity that the agent can tolerate
-- toxic-spread # The amount of toxicity that the agent spreads to other players
+- toxic-spread # The amount of toxicity that the agent spreads to other players. Function
+of (mental-state - threshold) * recovery rate. i.e. Amount of stress that makes the player toxic recovered
+in that step is the toxic spread to other players.
 - is-toxic # Whether the agent is currently toxic
 
 ## Flow:
@@ -27,11 +29,10 @@ Agents do step with lobbies sent
 
 ### Agent steps:
 
-pre-step: each agent updates their current mental-state based on recovery-rate, if reduced below change
-state to not toxic
-
 step: each agents check their lobby and infect players if infected. During toxic spread
 all other agents get some amount of increase in mental-state based on their tolerance.
 
+post-step: each agent updates their current mental-state based on recovery-rate, if reduced below change
+state to not toxic
 
 
