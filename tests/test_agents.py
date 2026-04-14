@@ -4,7 +4,7 @@ from mesa.model import Model
 from mesa.discrete_space import Network
 import networkx as nx
 
-from example.utilities import generate_random_subnetworks
+N = 12
 
 @pytest.fixture
 def mock_model():
@@ -22,50 +22,30 @@ def mock_player(mock_model):
     return _mock_player
 
 @pytest.fixture
-def player_agents_list(mock_model, N = 12):
+def player_agents_list(mock_model, n = N):
     m = mock_model
-    main_network = nx.complete_graph(N)
+    main_network = nx.complete_graph(n)
     main_layout = nx.random_layout(main_network)
 
     grid = Network(
         G=main_network,
-        capacity=N,
+        capacity=n,
         layout=main_layout,
     )
 
     player_agents = list(Player.create_agents(
         model=m,
-        n=N,
+        n=n,
         cell=list(grid.all_cells)
     ))
 
     return player_agents
 
-
-class TestUtilities:
-    @pytest.mark.parametrize("nodes, nodes_in_subnetwork", [(5, 2), (6, 0), (6, 4)])
-    def test_generate_random_subnetworks_invalid_inputs(self, nodes, nodes_in_subnetwork):
-        # Testing done:
-        # Total Nodes cannot be odd
-        # Subnetwork nodes cannot be odd
-        # Total nodes should be equally subdivided to subnetworks
-        with pytest.raises(ValueError):
-            generate_random_subnetworks(nx.complete_graph(nodes), nodes_in_subnetwork)
-
-    def test_generate_random_subnetworks_empty_graph(self):
-        # Empty graph instance as input
-        assert len(generate_random_subnetworks(nx.complete_graph(0),2)) == 0
-
-    def test_generate_random_subnetworks(self):
-        # Positive case
-        subnetworks = generate_random_subnetworks(nx.complete_graph(6), 2)
-        assert len(subnetworks) == 3 and len(subnetworks[0]) == 2
-
 class TestPlayer:
     def test_get_players_in_lobby(self, player_agents_list):
         player_agents = player_agents_list
 
-        # generated from the utilities.generate_random_subnetworks function
+        # lobbies generated from the utilities.generate_random_subnetworks function
         subnetwork = [[0, 1, 3, 4], [2, 6, 5, 8], [7, 10, 9, 11]]
 
         # Agentset has agents created in order, so the first agent ID is 0
@@ -83,3 +63,54 @@ class TestPlayer:
         player = mock_player()
         player.add_toxicity(toxic_spread)
         assert player.mental_stress == expected
+
+    def test_player_post_step_convert_to_toxic(self, mock_player):
+        player = mock_player()
+        player.add_toxicity(100)
+        player.post_step()
+
+        assert player.mental_stress == 80
+        assert player.is_toxic is True
+
+    def test_toxic_player_post_step_ignore_toxicity(self, mock_player):
+        player = mock_player()
+        player.add_toxicity(100)
+        player.post_step()
+
+        # Toxic player should not accept toxicity
+        player.add_toxicity(50)
+        assert player.mental_stress == 80
+
+    def test_toxic_player_post_step_remove_toxicity(self, mock_player):
+        player = mock_player()
+        player.add_toxicity(100)
+        player.post_step()
+
+        # Reducing toxicity to normal state
+        player.post_step()
+        player.post_step()
+
+        assert player.is_toxic is False
+
+    def test_toxic_player_step_spreading_toxicity(self, player_agents_list, subtests):
+        player_agents = player_agents_list
+
+        # lobbies generated from the utilities.generate_random_subnetworks function
+        lobbies = [[0, 1, 2, 3, 4, 5], [6, 7, 8, 9, 10, 11]]
+
+        for i in range(5):
+            player_agents[i].lobbyID = 0
+
+        # Add toxicity and set 0th player as toxic
+        player_agents[0].add_toxicity(100) # mental_stress = 100
+        player_agents[0].post_step() # Note: Post-step reduces an amount of toxicity. Now, mental_stress = 80
+
+        # Spread toxicity. toxic_spread = 1;
+        player_agents[0].step(lobbies=lobbies)
+
+        for i in range(1, 6):
+            with subtests.test(msg="mental_stress of players in lobby after toxic_spread", i=i):
+                assert player_agents[i].mental_stress == 50.5
+
+
+

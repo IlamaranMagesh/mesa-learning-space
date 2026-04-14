@@ -1,6 +1,3 @@
-from math import trunc
-from typing import override
-
 import mesa
 from mesa.discrete_space import CellAgent, CellCollection, Cell
 
@@ -29,6 +26,7 @@ class Player(CellAgent):
     ):
         """
         A Player agent assigned to a coordinate or ID
+
         :param model: Mesa model for the simulation
         :param mental_stress: Current mental state of the Player. Range: 0 (Healthy) to 100 (Toxic)
         :param recovery_rate: Percentage of mental_stress recovered after each game session. Range: 0 to 100
@@ -49,6 +47,7 @@ class Player(CellAgent):
     def get_players_in_lobby(self, current_lobby:list[int]) -> CellCollection:
         """
         To retrieve the Players in the same lobby as the current Player
+
         :param current_lobby: List of Player coordinates or IDs that are present in the lobby
         :return: CellCollection of the Player agents in the current_lobby
         """
@@ -59,6 +58,7 @@ class Player(CellAgent):
     def add_toxicity(self, toxic_spread: float):
         """
         This method adds a specific amount of incoming toxic to the Player's mental stress based on the tolerance
+
         :param toxic_spread: Incoming toxic from other toxic Players
         """
         if not self.is_toxic:
@@ -71,7 +71,7 @@ class Player(CellAgent):
         Post game where some amount of mental stress of the Players is recovered based on their recovery_rate
         """
         # Exponential mental_stress decay 100 (Toxic) --> 0 (Healthy)
-        self.mental_stress = min(0.0, self.mental_stress - (self.mental_stress * self.recovery_rate))
+        self.mental_stress = max(0.0, self.mental_stress - (self.mental_stress * self.recovery_rate))
 
         if self.mental_stress > self.threshold:
             self.is_toxic = True
@@ -83,6 +83,7 @@ class Player(CellAgent):
         """
         Represents a game session with a group of players in a shared lobby.
         Each game, if a Player is toxic, they spread some amount of toxic to other non-toxic Players in the same lobby
+
         :param lobbies: List of all lobbies with Player coordinates or IDs for the current game session
         """
         if self.is_toxic:
